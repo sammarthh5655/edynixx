@@ -136,7 +136,7 @@ export default function App() {
           </div>
           <h1 className="text-xl font-bold tracking-tight">Valorant AI Clipper</h1>
         </div>
-        <div className="text-xs font-mono text-gray-400">Powered by Gemini 3.0</div>
+        <div className="text-xs font-mono text-gray-400">Powered by Edynix </div>
       </header>
 
       <main className="max-w-6xl mx-auto p-6 space-y-8">
