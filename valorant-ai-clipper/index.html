@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edynix - AI Game Editing</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+
+body{
+color:white;overflow-x:hidden;
+background:linear-gradient(-45deg,#0f0f14,#141420,#1b1b2f,#111118);
+background-size:400% 400%;animation:gradientMove 12s ease infinite;
+}
+@keyframes gradientMove{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+
+body::before,body::after{content:"";position:fixed;width:500px;height:500px;border-radius:50%;filter:blur(120px);z-index:-1;animation:float 8s infinite alternate ease-in-out;}
+body::before{background:#4da3ff;top:-100px;left:-100px;}
+body::after{background:#9b59ff;bottom:-150px;right:-100px;}
+@keyframes float{from{transform:translateY(0px);}to{transform:translateY(40px);}}
+
+nav{display:flex;justify-content:space-between;align-items:center;padding:20px 60px;backdrop-filter:blur(20px);background:rgba(0,0,0,0.4);position:sticky;top:0;z-index:1000;}
+nav .brand{display:flex;align-items:center;gap:12px;cursor:pointer;}
+nav .brand-name{font-weight:700;font-size:22px;background:linear-gradient(90deg,#4da3ff,#9b59ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+nav ul{list-style:none;display:flex;gap:30px;}
+nav ul li{cursor:pointer;transition:0.3s;}
+nav ul li:hover{color:#4da3ff;}
+
+section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px 20px;transition:0.4s;}
+h2{font-size:42px;margin-bottom:20px;}
+p{max-width:700px;margin-bottom:30px;opacity:0.85;line-height:1.6;}
+
+button.primary-btn{padding:15px 35px;border:none;border-radius:30px;background:linear-gradient(90deg,#4da3ff,#9b59ff);color:white;font-size:16px;cursor:pointer;transition:0.3s;box-shadow:0 0 20px rgba(77,163,255,0.4);}
+button.primary-btn:hover{transform:translateY(-3px);box-shadow:0 0 30px rgba(155,89,255,0.6);}
+
+.hidden{display:none !important;}
+
+/* ---- GAME SELECTION ---- */
+.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;width:80%;max-width:900px;margin-top:30px;}
+.game-card{background:rgba(255,255,255,0.05);backdrop-filter:blur(15px);padding:35px 20px;border-radius:20px;cursor:pointer;transition:0.3s;border:1px solid rgba(255,255,255,0.1);}
+.game-card:hover{transform:translateY(-5px);background:rgba(77,163,255,0.2);}
+.game-card .gc-icon{font-size:42px;margin-bottom:12px;}
+.game-card .gc-name{font-size:17px;font-weight:600;margin-bottom:6px;}
+.game-card .gc-desc{font-size:12px;opacity:0.55;}
+
+.page-info-bar{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-top:40px;width:80%;max-width:900px;}
+.pib-item{background:rgba(255,255,255,0.04);border:1px solid rgba(77,163,255,0.2);border-radius:14px;padding:16px 24px;font-size:13px;flex:1;min-width:160px;}
+.pib-item strong{display:block;font-size:15px;margin-bottom:4px;background:linear-gradient(90deg,#4da3ff,#9b59ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+
+/* ---- USERNAME ---- */
+.username-card{background:rgba(255,255,255,0.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:50px 40px;max-width:480px;width:90%;margin-top:20px;}
+.username-card .uc-desc{font-size:14px;opacity:0.7;margin-bottom:24px;}
+input.custom-input{padding:14px 18px;width:100%;border-radius:12px;border:none;margin-bottom:20px;outline:none;font-size:15px;background:rgba(255,255,255,0.12);color:white;border:1px solid rgba(255,255,255,0.2);}
+input.custom-input::placeholder{color:rgba(255,255,255,0.4);}
+.mc-tip{margin-top:24px;font-size:12px;opacity:0.5;border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;}
+
+/* ---- UPLOAD ---- */
+.upload-card{background:rgba(255,255,255,0.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:50px 40px;max-width:520px;width:90%;margin-top:20px;}
+.upload-zone{border:2px dashed rgba(77,163,255,0.4);border-radius:16px;padding:40px 20px;margin-bottom:24px;cursor:pointer;transition:0.3s;background:rgba(77,163,255,0.04);}
+.upload-zone:hover{background:rgba(77,163,255,0.1);border-color:#4da3ff;}
+.upload-zone .uz-icon{font-size:44px;margin-bottom:10px;}
+.upload-zone p{font-size:14px;opacity:0.6;margin-bottom:0;max-width:100%;}
+.upload-zone input[type="file"]{display:none;}
+.upload-meta{display:flex;gap:12px;justify-content:center;margin-bottom:24px;flex-wrap:wrap;}
+.upload-meta span{font-size:12px;background:rgba(255,255,255,0.07);border-radius:20px;padding:6px 14px;opacity:0.75;}
+.selected-file{background:rgba(77,163,255,0.1);border:1px solid rgba(77,163,255,0.3);border-radius:10px;padding:10px 16px;font-size:13px;margin-bottom:16px;display:none;word-break:break-all;}
+.progress-bar-wrap{width:100%;background:rgba(255,255,255,0.08);border-radius:30px;height:8px;margin-top:20px;overflow:hidden;display:none;}
+.progress-bar{height:100%;width:0%;border-radius:30px;background:linear-gradient(90deg,#4da3ff,#9b59ff);transition:width 0.3s ease;}
+.upload-tips{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:30px;width:80%;max-width:520px;}
+.upload-tip{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px 18px;font-size:13px;flex:1;min-width:130px;}
+.upload-tip .ut-icon{font-size:22px;margin-bottom:6px;}
+.upload-tip p{font-size:12px;opacity:0.6;margin-bottom:0;max-width:100%;}
+
+/* ---- CONTACT ---- */
+.contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;width:80%;max-width:780px;margin:30px 0;}
+.contact-card{background:rgba(255,255,255,0.05);backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:30px 24px;transition:0.3s;}
+.contact-card:hover{transform:translateY(-4px);background:rgba(77,163,255,0.1);}
+.contact-card .cc-icon{font-size:32px;margin-bottom:12px;}
+.contact-card .cc-label{font-size:11px;opacity:0.5;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;}
+.contact-card .cc-value{font-size:15px;font-weight:600;}
+.contact-note{background:rgba(155,89,255,0.08);border:1px solid rgba(155,89,255,0.25);border-radius:16px;padding:20px 30px;max-width:600px;font-size:14px;opacity:0.75;margin-top:10px;}
+.creators-row{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-top:30px;width:80%;max-width:600px;}
+.creator-card{background:rgba(255,255,255,0.04);border:1px solid rgba(155,89,255,0.2);border-radius:16px;padding:20px 30px;flex:1;min-width:180px;}
+.creator-card .cr-avatar{font-size:36px;margin-bottom:8px;}
+.creator-card .cr-name{font-size:15px;font-weight:600;background:linear-gradient(90deg,#4da3ff,#9b59ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.creator-card .cr-role{font-size:12px;opacity:0.55;margin-top:4px;}
+
+/* ---- HOMEPAGE ---- */
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;width:80%;max-width:900px;margin:30px 0;}
+.feature-card{background:rgba(255,255,255,0.05);backdrop-filter:blur(15px);padding:30px 20px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);transition:0.3s;}
+.feature-card:hover{transform:translateY(-5px);background:rgba(77,163,255,0.1);}
+.feature-card .icon{font-size:36px;margin-bottom:12px;}
+.feature-card h3{font-size:18px;margin-bottom:8px;background:linear-gradient(90deg,#4da3ff,#9b59ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.feature-card p{font-size:14px;opacity:0.75;margin-bottom:0;max-width:100%;}
+.supported-games{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:20px 0 30px 0;}
+.game-badge{padding:8px 20px;border-radius:30px;background:rgba(255,255,255,0.07);border:1px solid rgba(77,163,255,0.4);font-size:14px;font-weight:600;transition:0.3s;}
+.game-badge:hover{background:rgba(77,163,255,0.2);}
+.stats-row{display:flex;gap:40px;justify-content:center;flex-wrap:wrap;margin:20px 0 30px 0;}
+.stat-item{text-align:center;}
+.stat-item .num{font-size:36px;font-weight:700;background:linear-gradient(90deg,#4da3ff,#9b59ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.stat-item .label{font-size:13px;opacity:0.7;}
+.divider{width:60%;height:1px;background:linear-gradient(90deg,transparent,rgba(77,163,255,0.4),transparent);margin:10px 0 40px 0;}
+.how-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px;width:80%;max-width:900px;margin:20px 0 30px 0;}
+.step{background:rgba(255,255,255,0.04);border:1px solid rgba(155,89,255,0.25);border-radius:20px;padding:25px 18px;transition:0.3s;}
+.step:hover{background:rgba(155,89,255,0.1);transform:translateY(-4px);}
+.step .step-num{font-size:28px;font-weight:700;background:linear-gradient(90deg,#4da3ff,#9b59ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px;}
+.step h3{font-size:16px;margin-bottom:6px;}
+.step p{font-size:13px;opacity:0.7;margin-bottom:0;max-width:100%;}
+
+footer{padding:20px;text-align:center;font-size:14px;opacity:0.7;}
+
+/* React Root Container */
+#root {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+</style>
+</head>
+<body>
+
+<nav>
+<div class="brand" onclick="showHome()">
+  <span style="font-size: 28px; margin-right: 8px;">🎮</span>
+  <span class="brand-name">Edynix</span>
+</div>
+<ul>
+<li onclick="showHome()">Home</li>
+<li onclick="showContact()">Contact</li>
+</ul>
+</nav>
+
+<!-- HOME -->
+<section id="home">
+<h2>Welcome to Edynix</h2>
+<p>
+Edynix is a professional AI-powered game editing platform created by 
+<strong>Supratik Shukla</strong> and <strong>Samarth Khandelwal</strong>, 
+14-year-old students passionate about AI, coding, and gaming.
+<br><br>
+We create cinematic AI highlights for your gameplay — fast, smart, and built for gamers.
+</p>
+
+<div class="stats-row">
+  <div class="stat-item"><div class="num">5+</div><div class="label">Supported Games</div></div>
+  <div class="stat-item"><div class="num">AI</div><div class="label">Powered Editing</div></div>
+  <div class="stat-item"><div class="num">100%</div><div class="label">Free to Use</div></div>
+</div>
+
+<button class="primary-btn" onclick="showGameSelection()">Start Editing</button>
+
+<div class="divider" style="margin-top:50px;"></div>
+
+<h2 style="font-size:28px;">Supported Games</h2>
+<p style="margin-bottom:16px;">Upload footage from your favourite titles and let our AI do the rest.</p>
+<div class="supported-games">
+  <div class="game-badge">⛏️ Minecraft</div>
+  <div class="game-badge" style="cursor: pointer; border-color: #ff4655;" onclick="selectGame('Valorant')">🔫 Valorant (AI Clipper)</div>
+  <div class="game-badge">🔥 Free Fire</div>
+  <div class="game-badge">🪂 Fortnite</div>
+  <div class="game-badge">💥 COD Mobile</div>
+  <div class="game-badge" style="opacity:0.55;border-color:rgba(155,89,255,0.3);">+ More Coming Soon</div>
+</div>
+
+<div class="divider"></div>
+
+<h2 style="font-size:28px;">What Makes Edynix Special</h2>
+<p style="margin-bottom:10px;">We built Edynix to give every gamer a cinematic highlight reel — no editing skills needed.</p>
+<div class="features-grid">
+  <div class="feature-card"><div class="icon">🎬</div><h3>Cinematic Highlights</h3><p>Our AI auto-detects your best moments and compiles a movie-quality highlight reel.</p></div>
+  <div class="feature-card"><div class="icon">⚡</div><h3>Fast Processing</h3><p>Get your edited video ready in minutes, not hours. No powerful PC required.</p></div>
+  <div class="feature-card"><div class="icon">🎮</div><h3>Game-Aware AI</h3><p>The AI understands each game's context — kills, builds, clutches, and more.</p></div>
+  <div class="feature-card"><div class="icon">🆓</div><h3>Completely Free</h3><p>No subscriptions, no hidden fees. Edynix is built by gamers, for gamers.</p></div>
+</div>
+
+<div class="divider"></div>
+
+<h2 style="font-size:28px;">How It Works</h2>
+<p style="margin-bottom:10px;">Three simple steps to your perfect highlight video.</p>
+<div class="how-steps">
+  <div class="step"><div class="step-num">01</div><h3>Pick Your Game</h3><p>Select from our list of supported titles. Minecraft players can also link their username.</p></div>
+  <div class="step"><div class="step-num">02</div><h3>Upload Gameplay</h3><p>Upload your raw gameplay footage directly from your device — any length works.</p></div>
+  <div class="step"><div class="step-num">03</div><h3>Download & Share</h3><p>Our AI edits your video and delivers a download-ready cinematic highlight in seconds.</p></div>
+</div>
+
+<button class="primary-btn" onclick="showGameSelection()" style="margin-top:10px;">Get Started — It's Free</button>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="hidden">
+<h2>Contact Us</h2>
+<p>We're two passionate 14-year-old developers who love gaming and AI. Reach out anytime!</p>
+
+<div class="contact-grid">
+  <div class="contact-card">
+    <div class="cc-icon">💬</div>
+    <div class="cc-label">Discord</div>
+    <div class="cc-value">glitchhon.wtf</div>
+    <div class="cc-value" style="margin-top:6px;font-size:13px;opacity:0.75;">Sammy5948</div>
+  </div>
+  <div class="contact-card">
+    <div class="cc-icon">📱</div>
+    <div class="cc-label">Mobile</div>
+    <div class="cc-value">+91 7309082302</div>
+  </div>
+  <div class="contact-card">
+    <div class="cc-icon">📧</div>
+    <div class="cc-label">Email</div>
+    <div class="cc-value" style="font-size:13px;">glitchhon5@gmail.com</div>
+  </div>
+</div>
+
+<div class="contact-note">
+  🚀 We typically respond within 24 hours. Whether you have feedback, a feature request, or just want to say hi — we'd love to hear from you!
+</div>
+
+<div class="creators-row">
+  <div class="creator-card">
+    <div class="cr-avatar">👨‍💻</div>
+    <div class="cr-name">Supratik Shukla</div>
+    <div class="cr-role">Co-Founder · AI & Backend</div>
+  </div>
+  <div class="creator-card">
+    <div class="cr-avatar">🎮</div>
+    <div class="cr-name">Samarth Khandelwal</div>
+    <div class="cr-role">Co-Founder · Design & Frontend</div>
+  </div>
+</div>
+</section>
+
+<!-- GAME SELECTION -->
+<section id="gamesPage" class="hidden">
+<h2>Select Your Game</h2>
+<p>Choose the game you recorded. Our AI tailors its editing style to match each game's vibe.</p>
+
+<div class="games">
+  <div class="game-card" onclick="selectGame('Minecraft')">
+    <div class="gc-icon">⛏️</div>
+    <div class="gc-name">Minecraft</div>
+    <div class="gc-desc">Builds, PvP & survival moments</div>
+  </div>
+  <div class="game-card" onclick="selectGame('Free Fire')">
+    <div class="gc-icon">🔥</div>
+    <div class="gc-name">Free Fire</div>
+    <div class="gc-desc">Battle royale, onetaps & highlights</div>
+  </div>
+  <div class="game-card" onclick="selectGame('Valorant')" style="border-color: rgba(255, 70, 85, 0.5); background: rgba(255, 70, 85, 0.05);">
+    <div class="gc-icon">🔫</div>
+    <div class="gc-name" style="color: #ff4655;">Valorant (AI Clipper)</div>
+    <div class="gc-desc">Auto-detects kill banners & creates clips</div>
+  </div>
+  <div class="game-card" onclick="selectGame('Fortnite')">
+    <div class="gc-icon">🪂</div>
+    <div class="gc-name">Fortnite</div>
+    <div class="gc-desc">Builds, edits & Victory Royales</div>
+  </div>
+  <div class="game-card" onclick="selectGame('COD Mobile')">
+    <div class="gc-icon">💥</div>
+    <div class="gc-name">COD Mobile</div>
+    <div class="gc-desc">Killstreaks & ranked moments</div>
+  </div>
+</div>
+
+<div class="page-info-bar">
+  <div class="pib-item"><strong>⚡ Fast</strong>Editing done in minutes</div>
+  <div class="pib-item"><strong>🎬 Cinematic</strong>Movie-style effects auto-applied</div>
+  <div class="pib-item"><strong>🆓 Always Free</strong>No login or payment needed</div>
+</div>
+</section>
+
+<!-- USERNAME -->
+<section id="minecraftUsernamePage" class="hidden">
+<h2>⛏️ Minecraft Setup</h2>
+<p>Link your Minecraft username so our AI can personalise your highlight with your skin and stats.</p>
+
+<div class="username-card">
+  <p class="uc-desc">Enter your Java or Bedrock username below to continue to the upload step.</p>
+  <input type="text" id="mcUsername" class="custom-input" placeholder="e.g. Steve123">
+  <button class="primary-btn" onclick="confirmUsername()" style="width:100%;">Continue →</button>
+  <div class="mc-tip">💡 Your username helps us fetch your skin and personalise the intro card of your highlight video.</div>
+</div>
+</section>
+
+<!-- UPLOAD -->
+<section id="uploadPage" class="hidden">
+<h2>Upload Your Gameplay</h2>
+<p>Drop your raw footage below. The AI will scan it and cut the very best moments automatically.</p>
+
+<div class="upload-card">
+  <div class="upload-zone" onclick="document.getElementById('videoUpload').click()">
+    <div class="uz-icon">🎥</div>
+    <p>Click to browse or drag & drop your video</p>
+    <p style="font-size:11px;margin-top:8px;">MP4 · MOV · AVI · MKV supported</p>
+    <input type="file" id="videoUpload" accept="video/*" onchange="fileSelected(this)">
+  </div>
+
+  <div class="upload-meta">
+    <span>✅ Up to 5GB</span>
+    <span>✅ Any resolution</span>
+    <span>✅ Any length</span>
+  </div>
+
+  <div class="selected-file" id="selectedFileName"></div>
+
+  <button class="primary-btn" onclick="startEditing()" style="width:100%;">🚀 Start AI Editing</button>
+
+  <div class="progress-bar-wrap" id="progressWrap">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <p id="processingText" class="hidden" style="margin-top:16px;font-size:14px;opacity:0.75;">
+    🤖 AI is analysing your gameplay and selecting the best moments...
+  </p>
+</div>
+
+<div class="upload-tips">
+  <div class="upload-tip"><div class="ut-icon">🎞️</div><p>Longer recordings = more clips to choose from</p></div>
+  <div class="upload-tip"><div class="ut-icon">🔊</div><p>Game audio helps the AI detect action spikes</p></div>
+  <div class="upload-tip"><div class="ut-icon">📐</div><p>1080p or higher gives the best visual output</p></div>
+</div>
+
+<div id="downloadSection" class="hidden" style="margin-top:30px;">
+  <p style="color:#4da3ff;font-weight:600;font-size:20px;">✅ Your highlight is ready!</p>
+  <p style="font-size:14px;opacity:0.7;margin-bottom:16px;">The AI has finished editing. Download your cinematic highlight reel below.</p>
+  <button class="primary-btn" onclick="downloadVideo()">⬇️ Download Edited Video</button>
+</div>
+</section>
+
+<!-- VALORANT CLIPPER APP CONTAINER -->
+<div id="valorantAppContainer" class="hidden" style="width: 100%; min-height: 100vh; padding-top: 20px;">
+  <div id="root"></div>
+</div>
+
+<footer>
+© 2026 Edynix | AI Game Editing Platform by Supratik Shukla &amp; Samarth Khandelwal
+</footer>
+
+<script>
+let selectedGame = "";
+let minecraftUsername = "";
+
+function showHome(){
+  hideAll();
+  document.getElementById("home").classList.remove("hidden");
+}
+
+function showContact(){
+  hideAll();
+  document.getElementById("contact").classList.remove("hidden");
+}
+
+function showGameSelection(){
+  hideAll();
+  document.getElementById("gamesPage").classList.remove("hidden");
+}
+
+function selectGame(game){
+  selectedGame = game;
+  if(game==="Minecraft"){
+    hideAll();
+    document.getElementById("minecraftUsernamePage").classList.remove("hidden");
+  }
+  else if(game==="Valorant"){
+    hideAll();
+    document.getElementById("valorantAppContainer").classList.remove("hidden");
+  }
+  else{
+    hideAll();
+    document.getElementById("uploadPage").classList.remove("hidden");
+  }
+}
+
+function confirmUsername(){
+  minecraftUsername = document.getElementById("mcUsername").value;
+  if(minecraftUsername===""){alert("Username is required for Minecraft.");return;}
+  hideAll();
+  document.getElementById("uploadPage").classList.remove("hidden");
+}
+
+function fileSelected(input){
+  if(input.files&&input.files[0]){
+    let file=input.files[0];
+    const maxSize=5*1024*1024*1024; // 5GB in bytes
+    if(file.size>maxSize){
+      alert("❌ File too large! Maximum allowed size is 5GB.\n\nYour file: "+formatSize(file.size)+"\nMax allowed: 5GB\n\nPlease compress or trim your video and try again.");
+      input.value="";
+      let el=document.getElementById("selectedFileName");
+      el.style.display="none";
+      return;
+    }
+    let el=document.getElementById("selectedFileName");
+    el.style.display="block";
+    el.textContent="📁 "+file.name+" ("+formatSize(file.size)+")";
+  }
+}
+
+function formatSize(bytes){
+  if(bytes>=1024*1024*1024) return (bytes/(1024*1024*1024)).toFixed(2)+" GB";
+  if(bytes>=1024*1024) return (bytes/(1024*1024)).toFixed(1)+" MB";
+  return (bytes/1024).toFixed(0)+" KB";
+}
+
+function startEditing(){
+  let file = document.getElementById("videoUpload").files[0];
+  if(!file){
+    alert("Please upload a video first.");
+    return;
+  }
+
+  const maxSize = 5*1024*1024*1024;
+  if(file.size > maxSize){
+    alert("❌ File exceeds the 5GB limit.");
+    return;
+  }
+
+  let formData = new FormData();
+  formData.append("video", file);
+  formData.append("game", selectedGame);
+  formData.append("username", minecraftUsername);
+
+  document.getElementById("processingText").classList.remove("hidden");
+  document.getElementById("progressWrap").style.display="block";
+
+  let bar = document.getElementById("progressBar");
+  bar.style.width = "20%";
+
+  fetch("/upload", {
+    method: "POST",
+    body: formData
+  })
+  .then(response => {
+    if(!response.ok){
+      throw new Error("Server error");
+    }
+    return response.blob();
+  })
+  .then(blob => {
+    bar.style.width = "100%";
+
+    let url = window.URL.createObjectURL(blob);
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "edynix_highlight.mp4";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    document.getElementById("processingText").classList.add("hidden");
+    document.getElementById("downloadSection").classList.remove("hidden");
+  })
+  .catch(error => {
+    alert("❌ Error processing video. Check backend.");
+    console.error(error);
+  });
+}
+
+function hideAll(){
+  ["home","contact","gamesPage","minecraftUsernamePage","uploadPage","valorantAppContainer"].forEach(id=>{
+    document.getElementById(id).classList.add("hidden");
+  });
+  document.getElementById("downloadSection").classList.add("hidden");
+  document.getElementById("processingText").classList.add("hidden");
+  document.getElementById("progressWrap").style.display="none";
+  document.getElementById("progressBar").style.width="0%";
+  let sf=document.getElementById("selectedFileName");
+  if(sf)sf.style.display="none";
+}
+</script>
+
+<!-- Load the React App -->
+<script type="module" src="/src/main.tsx"></script>
+
+</body>
+</html>
+
