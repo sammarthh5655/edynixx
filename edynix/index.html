@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edynix - AI Game Editing</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+
+body{
+color:#fff;overflow-x:hidden;
+background-color:#000;
+position:relative;
+}
+
+/* Interactive Dots Background */
+#particles-js {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  background-color: #000;
+  pointer-events: none;
+}
+
+nav{display:flex;justify-content:space-between;align-items:center;padding:20px 60px;backdrop-filter:blur(20px);background:rgba(0,0,0,0.8);position:sticky;top:0;z-index:1000;border-bottom: 1px solid rgba(255,255,255,0.1);}
+nav .brand{display:flex;align-items:center;gap:12px;cursor:pointer;}
+nav .brand-name{font-weight:800;font-size:24px;color:#fff;letter-spacing:1px;text-transform:uppercase;}
+nav ul{list-style:none;display:flex;gap:30px;}
+nav ul li{cursor:pointer;transition:0.3s;font-weight:600;text-transform:uppercase;letter-spacing:1px;position:relative;}
+nav ul li::after{content:'';position:absolute;width:0;height:2px;bottom:-4px;left:0;background-color:#fff;transition:width 0.3s ease;}
+nav ul li:hover::after{width:100%;}
+
+section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px 20px;transition:0.4s;position:relative;z-index:1;perspective:1000px;}
+h2{font-size:48px;font-weight:800;margin-bottom:20px;text-transform:uppercase;letter-spacing:2px;text-shadow: 0 0 20px rgba(255,255,255,0.3);}
+p{max-width:700px;margin-bottom:30px;opacity:0.8;line-height:1.8;font-size:16px;}
+
+button.primary-btn{padding:15px 40px;border:2px solid #fff;border-radius:0;background:transparent;color:#fff;font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:2px;cursor:pointer;transition:all 0.3s ease;position:relative;overflow:hidden;}
+button.primary-btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:#fff;transition:all 0.3s ease;z-index:-1;}
+button.primary-btn:hover::before{left:0;}
+button.primary-btn:hover{color:#000;box-shadow:0 0 30px rgba(255,255,255,0.5);}
+
+.hidden{display:none !important;}
+
+/* ---- SCROLL ANIMATIONS ---- */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(100px) scale(0.85) rotateX(-25deg);
+  filter: blur(15px);
+  transition: opacity 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  will-change: opacity, transform, filter;
+  transform-origin: bottom center;
+}
+.animate-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1) rotateX(0deg);
+  filter: blur(0px);
+}
+
+/* Delay for staggered animations */
+.delay-100 { transition-delay: 100ms; }
+.delay-200 { transition-delay: 200ms; }
+.delay-300 { transition-delay: 300ms; }
+.delay-400 { transition-delay: 400ms; }
+
+/* ---- GAME SELECTION ---- */
+.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:30px;width:80%;max-width:1000px;margin-top:40px;}
+.game-card{background:rgba(255,255,255,0.02);backdrop-filter:blur(10px);padding:40px 20px;border-radius:0;cursor:pointer;transition:all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);border:1px solid rgba(255,255,255,0.2);position:relative;overflow:hidden;}
+.game-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);transform:translateX(-100%);transition:transform 0.6s ease;}
+.game-card:hover::before{transform:translateX(100%);}
+.game-card:hover{transform:translateY(-10px) scale(1.02);background:rgba(255,255,255,0.05);border-color:#fff;box-shadow:0 15px 30px rgba(255,255,255,0.1);}
+.game-card .gc-name{font-size:20px;font-weight:800;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;color:#fff !important;}
+.game-card .gc-desc{font-size:13px;opacity:0.6;}
+
+.page-info-bar{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-top:50px;width:80%;max-width:900px;}
+.pib-item{background:transparent;border:1px solid rgba(255,255,255,0.3);border-radius:0;padding:20px 24px;font-size:14px;flex:1;min-width:180px;transition:0.3s;}
+.pib-item:hover{background:rgba(255,255,255,0.05);border-color:#fff;}
+.pib-item strong{display:block;font-size:18px;font-weight:800;margin-bottom:6px;text-transform:uppercase;color:#fff;}
+
+/* ---- USERNAME ---- */
+.username-card{background:rgba(0,0,0,0.6);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.2);border-radius:0;padding:50px 40px;max-width:480px;width:90%;margin-top:20px;}
+.username-card .uc-desc{font-size:15px;opacity:0.8;margin-bottom:24px;}
+input.custom-input{padding:16px 20px;width:100%;border-radius:0;border:1px solid rgba(255,255,255,0.3);margin-bottom:24px;outline:none;font-size:16px;background:transparent;color:white;transition:0.3s;}
+input.custom-input:focus{border-color:#fff;box-shadow:0 0 15px rgba(255,255,255,0.2);}
+input.custom-input::placeholder{color:rgba(255,255,255,0.3);}
+.mc-tip{margin-top:24px;font-size:13px;opacity:0.6;border-top:1px solid rgba(255,255,255,0.1);padding-top:16px;}
+
+/* ---- UPLOAD ---- */
+.upload-card{background:rgba(0,0,0,0.6);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.2);border-radius:0;padding:50px 40px;max-width:520px;width:90%;margin-top:20px;}
+.upload-zone{border:2px dashed rgba(255,255,255,0.4);border-radius:0;padding:50px 20px;margin-bottom:24px;cursor:pointer;transition:all 0.3s ease;background:transparent;}
+.upload-zone:hover{background:rgba(255,255,255,0.05);border-color:#fff;transform:scale(1.02);}
+.upload-zone .uz-icon{font-size:48px;margin-bottom:15px;}
+.upload-zone p{font-size:15px;opacity:0.8;margin-bottom:0;max-width:100%;}
+.upload-zone input[type="file"]{display:none;}
+.upload-meta{display:flex;gap:12px;justify-content:center;margin-bottom:24px;flex-wrap:wrap;}
+.upload-meta span{font-size:13px;background:transparent;border:1px solid rgba(255,255,255,0.3);border-radius:0;padding:8px 16px;opacity:0.8;font-weight:600;text-transform:uppercase;}
+.selected-file{background:rgba(255,255,255,0.1);border:1px solid #fff;border-radius:0;padding:12px 16px;font-size:14px;margin-bottom:20px;display:none;word-break:break-all;font-weight:600;}
+.progress-bar-wrap{width:100%;background:rgba(255,255,255,0.1);border-radius:0;height:10px;margin-top:24px;overflow:hidden;display:none;}
+.progress-bar{height:100%;width:0%;background:#fff;transition:width 0.3s ease;box-shadow:0 0 10px #fff;}
+.upload-tips{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:40px;width:80%;max-width:600px;}
+.upload-tip{background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:0;padding:20px;font-size:14px;flex:1;min-width:150px;transition:0.3s;}
+.upload-tip:hover{border-color:#fff;transform:translateY(-5px);}
+.upload-tip .ut-icon{font-size:24px;margin-bottom:10px;}
+.upload-tip p{font-size:13px;opacity:0.7;margin-bottom:0;max-width:100%;}
+
+/* ---- CONTACT ---- */
+.contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:30px;width:80%;max-width:800px;margin:40px 0;}
+.contact-card{background:transparent;backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.2);border-radius:0;padding:40px 24px;transition:all 0.3s ease;}
+.contact-card:hover{transform:translateY(-8px);border-color:#fff;box-shadow:0 10px 20px rgba(255,255,255,0.1);}
+.contact-card .cc-icon{font-size:36px;margin-bottom:16px;}
+.contact-card .cc-label{font-size:12px;opacity:0.6;margin-bottom:8px;text-transform:uppercase;letter-spacing:2px;font-weight:700;}
+.contact-card .cc-value{font-size:16px;font-weight:800;}
+.contact-note{background:transparent;border:1px solid rgba(255,255,255,0.3);border-radius:0;padding:24px 30px;max-width:600px;font-size:15px;opacity:0.8;margin-top:20px;font-style:italic;}
+.creators-row{display:flex;gap:30px;justify-content:center;flex-wrap:wrap;margin-top:50px;width:80%;max-width:700px;}
+.creator-card{background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:0;padding:30px;flex:1;min-width:200px;transition:0.3s;}
+.creator-card:hover{border-color:#fff;transform:scale(1.05);}
+.creator-card .cr-avatar{font-size:42px;margin-bottom:12px;}
+.creator-card .cr-name{font-size:18px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#fff;}
+.creator-card .cr-role{font-size:13px;opacity:0.6;margin-top:6px;text-transform:uppercase;letter-spacing:1px;}
+
+/* ---- HOMEPAGE ---- */
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:30px;width:80%;max-width:1000px;margin:40px 0;}
+.feature-card{background:transparent;backdrop-filter:blur(15px);padding:40px 24px;border-radius:0;border:1px solid rgba(255,255,255,0.2);transition:all 0.3s ease;}
+.feature-card:hover{transform:translateY(-10px);border-color:#fff;box-shadow:0 15px 30px rgba(255,255,255,0.1);}
+.feature-card .icon{font-size:42px;margin-bottom:16px;}
+.feature-card h3{font-size:20px;font-weight:800;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;color:#fff;}
+.feature-card p{font-size:15px;opacity:0.7;margin-bottom:0;max-width:100%;}
+.supported-games{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin:30px 0 40px 0;}
+.game-badge{padding:10px 24px;border-radius:0;background:transparent;border:1px solid rgba(255,255,255,0.3);font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:1px;transition:all 0.3s ease;}
+.game-badge:hover{background:#fff;color:#000;border-color:#fff;}
+.stats-row{display:flex;gap:50px;justify-content:center;flex-wrap:wrap;margin:30px 0 40px 0;}
+.stat-item{text-align:center;}
+.stat-item .num{font-size:48px;font-weight:800;color:#fff;text-shadow:0 0 15px rgba(255,255,255,0.5);}
+.stat-item .label{font-size:14px;font-weight:600;opacity:0.7;text-transform:uppercase;letter-spacing:2px;margin-top:4px;}
+.divider{width:80%;max-width:800px;height:1px;background:rgba(255,255,255,0.2);margin:20px 0 50px 0;}
+.how-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:30px;width:80%;max-width:1000px;margin:30px 0 40px 0;}
+.step{background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:0;padding:35px 24px;transition:all 0.3s ease;}
+.step:hover{border-color:#fff;transform:translateY(-8px);box-shadow:0 10px 20px rgba(255,255,255,0.1);}
+.step .step-num{font-size:36px;font-weight:800;color:#fff;margin-bottom:12px;opacity:0.5;}
+.step:hover .step-num{opacity:1;text-shadow:0 0 15px rgba(255,255,255,0.5);}
+.step h3{font-size:18px;font-weight:800;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;}
+.step p{font-size:14px;opacity:0.7;margin-bottom:0;max-width:100%;}
+
+footer{padding:30px;text-align:center;font-size:13px;opacity:0.6;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-top:1px solid rgba(255,255,255,0.1);width:100%;background:#000;position:relative;z-index:1;}
+
+/* React Root Container */
+#root {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  nav {
+    flex-direction: column;
+    padding: 15px 20px;
+    gap: 15px;
+  }
+  nav ul {
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+</style>
+</head>
+<body>
+<!-- Particles.js Container -->
+<div id="particles-js"></div>
+
+  <nav>
+  <div class="brand" onclick="showHome()">
+    <img src="https://i.ibb.co/rg0TChV/Screenshot-2026-03-04-210703.png"
+    style="width:36px;height:36px;border-radius:8px;margin-right:10px;" onerror="this.style.display='none'">
+    
+    <span class="brand-name">Edynix</span>
+  </div>
+
+  <ul>
+    <li onclick="showHome()">Home</li>
+    <li onclick="showContact()">Contact</li>
+    <li onclick="showMoreTools()">More Tools</li>
+  </ul>
+</nav>
+
+<!-- HOME -->
+<section id="home">
+<h2 class="animate-on-scroll">Welcome to Edynix</h2>
+<p class="animate-on-scroll delay-100">
+Edynix is a professional AI-powered game editing platform created by 
+<strong>Supratik Shukla</strong> and <strong>Samarth Khandelwal</strong>, 
+14-year-old students passionate about AI, coding, and gaming.
+<br><br>
+We create cinematic AI highlights for your gameplay — fast, smart, and built for gamers.
+</p>
+
+<div class="stats-row animate-on-scroll delay-200">
+  <div class="stat-item"><div class="num">5+</div><div class="label">Supported Games</div></div>
+  <div class="stat-item"><div class="num">AI</div><div class="label">Powered Editing</div></div>
+  <div class="stat-item"><div class="num">100%</div><div class="label">Free to Use</div></div>
+</div>
+
+<button class="primary-btn animate-on-scroll delay-300" onclick="showGameSelection()">Start Editing</button>
+
+<div class="divider animate-on-scroll" style="margin-top:50px;"></div>
+
+<h2 class="animate-on-scroll" style="font-size:28px;">Supported Games</h2>
+<p class="animate-on-scroll delay-100" style="margin-bottom:16px;">Upload footage from your favourite titles and let our AI do the rest.</p>
+<div class="supported-games animate-on-scroll delay-200">
+  <div class="game-badge" style="display: flex; align-items: center; gap: 8px;"><img src="data:image/jpeg;base64,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" alt="Minecraft" referrerpolicy="no-referrer" style="height: 16px; object-fit: contain;"> Minecraft</div>
+  <div class="game-badge" style="cursor: pointer; display: flex; align-items: center; gap: 8px;" onclick="selectGame('Valorant')"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Valorant_logo_-_pink_color_version.svg/512px-Valorant_logo_-_pink_color_version.svg.png" alt="Valorant" referrerpolicy="no-referrer" style="height: 16px; object-fit: contain;" onerror="this.style.display='none'"> Valorant</div>
+  <div class="game-badge" style="cursor: pointer; display: flex; align-items: center; gap: 8px;" onclick="selectGame('Free Fire')"><img src="https://upload.wikimedia.org/wikipedia/en/3/30/Garena_Free_Fire_logo.png" alt="Free Fire" referrerpolicy="no-referrer" style="height: 16px; object-fit: contain;" onerror="this.style.display='none'"> Free Fire</div>
+  <div class="game-badge" style="display: flex; align-items: center; gap: 8px;"><img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Fortnite_F_lettermark_logo.png" alt="Fortnite" referrerpolicy="no-referrer" style="height: 16px; object-fit: contain;" onerror="this.style.display='none'"> Fortnite</div>
+  <div class="game-badge" style="display: flex; align-items: center; gap: 8px;"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Call_of_Duty_logo.svg/512px-Call_of_Duty_logo.svg.png" alt="COD Mobile" referrerpolicy="no-referrer" style="height: 16px; object-fit: contain; filter: invert(1);" onerror="this.style.display='none'"> COD Mobile</div>
+  <div class="game-badge" style="opacity:0.55;">+ More Coming Soon</div>
+</div>
+
+<div class="divider animate-on-scroll"></div>
+
+<h2 class="animate-on-scroll" style="font-size:28px;">What Makes Edynix Special</h2>
+<p class="animate-on-scroll delay-100" style="margin-bottom:10px;">We built Edynix to give every gamer a cinematic highlight reel — no editing skills needed.</p>
+<div class="features-grid animate-on-scroll delay-200">
+  <div class="feature-card"><div class="icon">🎬</div><h3>Cinematic Highlights</h3><p>Our AI auto-detects your best moments and compiles a movie-quality highlight reel.</p></div>
+  <div class="feature-card"><div class="icon">⚡</div><h3>Fast Processing</h3><p>Get your edited video ready in minutes, not hours. No powerful PC required.</p></div>
+  <div class="feature-card"><div class="icon">🎮</div><h3>Game-Aware AI</h3><p>The AI understands each game's context — kills, builds, clutches, and more.</p></div>
+  <div class="feature-card"><div class="icon">🆓</div><h3>Completely Free</h3><p>No subscriptions, no hidden fees. Edynix is built by gamers, for gamers.</p></div>
+</div>
+
+<div class="divider animate-on-scroll"></div>
+
+<h2 class="animate-on-scroll" style="font-size:28px;">How It Works</h2>
+<p class="animate-on-scroll delay-100" style="margin-bottom:10px;">Three simple steps to your perfect highlight video.</p>
+<div class="how-steps animate-on-scroll delay-200">
+  <div class="step"><div class="step-num">01</div><h3>Pick Your Game</h3><p>Select from our list of supported titles. Minecraft players can also link their username.</p></div>
+  <div class="step"><div class="step-num">02</div><h3>Upload Gameplay</h3><p>Upload your raw gameplay footage directly from your device — any length works.</p></div>
+  <div class="step"><div class="step-num">03</div><h3>Download & Share</h3><p>Our AI edits your video and delivers a download-ready cinematic highlight in seconds.</p></div>
+</div>
+
+<button class="primary-btn animate-on-scroll delay-300" onclick="showGameSelection()" style="margin-top:10px;">Get Started — It's Free</button>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="hidden">
+<h2 class="animate-on-scroll">Contact Us</h2>
+<p class="animate-on-scroll delay-100">We're two passionate 14-year-old developers who love gaming and AI. Reach out anytime!</p>
+
+<div class="contact-grid animate-on-scroll delay-200">
+  <div class="contact-card">
+    <div class="cc-icon">💬</div>
+    <div class="cc-label">Discord</div>
+    <div class="cc-value">edynix.official</div>
+    <div class="cc-value" style="margin-top:6px;font-size:13px;opacity:0.75;"></div>
+  </div>
+  <div class="contact-card">
+    <div class="cc-icon">📱</div>
+    <div class="cc-label">Mobile</div>
+    <div class="cc-value">+91 8736023212</div>
+  </div>
+  <div class="contact-card">
+    <div class="cc-icon">📧</div>
+    <div class="cc-label">Email</div>
+    <div class="cc-value" style="font-size:13px;">edynixofficial@gmail.com</div>
+  </div>
+</div>
+
+<div class="contact-note animate-on-scroll delay-300">
+  🚀 We typically respond within 24 hours. Whether you have feedback, a feature request, or just want to say hi — we'd love to hear from you!
+</div>
+
+<div class="creators-row animate-on-scroll delay-400">
+  <div class="creator-card">
+    <div class="cr-avatar">👨‍💻</div>
+    <div class="cr-name">Supratik Shukla</div>
+    <div class="cr-role">Founder · AI & Backend</div>
+  </div>
+  <div class="creator-card">
+    <div class="cr-avatar">🎮</div>
+    <div class="cr-name">Samarth Khandelwal</div>
+    <div class="cr-role">Co-Founder · Design & Frontend</div>
+  </div>
+</div>
+</section>
+
+<!-- MORE TOOLS -->
+<section id="moreTools" class="hidden">
+<h2 class="animate-on-scroll">More Tools</h2>
+<p class="animate-on-scroll delay-100">We are constantly building new AI tools for gamers. Check back often!</p>
+<div class="contact-note animate-on-scroll delay-200" style="text-align: center; font-size: 18px; font-weight: 600; padding: 40px; border-color: #fff; background: rgba(255,255,255,0.05);">
+  🚀 A new tool comes every week! Stay tuned.
+</div>
+</section>
+
+<!-- GAME SELECTION -->
+<section id="gamesPage" class="hidden">
+<h2>Select Your Game</h2>
+<p>Choose the game you recorded. Our AI tailors its editing style to match each game's vibe.</p>
+
+<div class="games">
+  <div class="game-card" onclick="selectGame('Minecraft')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Minecraft_Logo.svg/512px-Minecraft_Logo.svg.png" alt="Minecraft" referrerpolicy="no-referrer" style="height: 42px; margin: 0 auto 12px auto; display: block; object-fit: contain;">
+    <div class="gc-name">Minecraft</div>
+    <div class="gc-desc">Builds, PvP & survival moments</div>
+  </div>
+ <div class="game-card" onclick="selectGame('Free Fire')">
+  <img src="https://upload.wikimedia.org/wikipedia/en/3/30/Garena_Free_Fire_logo.png" alt="Free Fire" referrerpolicy="no-referrer" style="height: 42px; margin: 0 auto 12px auto; display: block; object-fit: contain;">
+  <div class="gc-name">Free Fire</div>
+  <div class="gc-desc">Auto-detects kill icons & creates clips</div>
+</div>
+  <div class="game-card" onclick="selectGame('Valorant')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Valorant_logo_-_pink_color_version.svg/512px-Valorant_logo_-_pink_color_version.svg.png" alt="Valorant" referrerpolicy="no-referrer" style="height: 42px; margin: 0 auto 12px auto; display: block; object-fit: contain;">
+    <div class="gc-name">Valorant</div>
+    <div class="gc-desc">Auto-detects kill banners & creates clips</div>
+  </div>
+  <div class="game-card" onclick="selectGame('Fortnite')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Fortnite_F_lettermark_logo.png" alt="Fortnite" referrerpolicy="no-referrer" style="height: 42px; margin: 0 auto 12px auto; display: block; object-fit: contain;">
+    <div class="gc-name">Fortnite</div>
+    <div class="gc-desc">Builds, edits & Victory Royales</div>
+  </div>
+  <div class="game-card" onclick="selectGame('COD Mobile')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Call_of_Duty_logo.svg/512px-Call_of_Duty_logo.svg.png" alt="COD Mobile" referrerpolicy="no-referrer" style="height: 42px; margin: 0 auto 12px auto; display: block; object-fit: contain; filter: invert(1);">
+    <div class="gc-name">COD Mobile</div>
+    <div class="gc-desc">Killstreaks & ranked moments</div>
+  </div>
+</div>
+
+<div class="page-info-bar">
+  <div class="pib-item"><strong>⚡ Fast</strong>Editing done in minutes</div>
+  <div class="pib-item"><strong>🎬 Cinematic</strong>Movie-style effects auto-applied</div>
+  <div class="pib-item"><strong>🆓 Always Free</strong>No login or payment needed</div>
+</div>
+</section>
+
+<!-- USERNAME -->
+<section id="minecraftUsernamePage" class="hidden">
+<h2>⛏️ Minecraft Setup</h2>
+<p>Link your Minecraft username so our AI can personalise your highlight with your skin and stats.</p>
+
+<div class="username-card">
+  <p class="uc-desc">Enter your Java or Bedrock username below to continue to the upload step.</p>
+  <input type="text" id="mcUsername" class="custom-input" placeholder="e.g. Steve123">
+  <button class="primary-btn" onclick="confirmUsername()" style="width:100%;">Continue →</button>
+  <div class="mc-tip">💡 Your username helps us fetch your skin and personalise the intro card of your highlight video.</div>
+</div>
+</section>
+
+<!-- UPLOAD -->
+<section id="uploadPage" class="hidden">
+<h2>Upload Your Gameplay</h2>
+<p>Drop your raw footage below. The AI will scan it and cut the very best moments automatically.</p>
+
+<div class="upload-card">
+  <div class="upload-zone" onclick="document.getElementById('videoUpload').click()">
+    <div class="uz-icon">🎥</div>
+    <p>Click to browse or drag & drop your video</p>
+    <p style="font-size:11px;margin-top:8px;">MP4 · MOV · AVI · MKV supported</p>
+    <input type="file" id="videoUpload" accept="video/*" onchange="fileSelected(this)">
+  </div>
+
+  <div class="upload-meta">
+    <span>✅ Up to 5GB</span>
+    <span>✅ Any resolution</span>
+    <span>✅ Any length</span>
+  </div>
+
+  <div class="selected-file" id="selectedFileName"></div>
+
+  <button class="primary-btn" onclick="startEditing()" style="width:100%;">🚀 Start AI Editing</button>
+
+  <div class="progress-bar-wrap" id="progressWrap">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <p id="processingText" class="hidden" style="margin-top:16px;font-size:14px;opacity:0.75;">
+    🤖 AI is analysing your gameplay and selecting the best moments...
+  </p>
+</div>
+
+<div class="upload-tips">
+  <div class="upload-tip"><div class="ut-icon">🎞️</div><p>Longer recordings = more clips to choose from</p></div>
+  <div class="upload-tip"><div class="ut-icon">🔊</div><p>Game audio helps the AI detect action spikes</p></div>
+  <div class="upload-tip"><div class="ut-icon">📐</div><p>1080p or higher gives the best visual output</p></div>
+</div>
+
+<div id="downloadSection" class="hidden" style="margin-top:30px;">
+  <p style="color:#4da3ff;font-weight:600;font-size:20px;">✅ Your highlight is ready!</p>
+  <p style="font-size:14px;opacity:0.7;margin-bottom:16px;">The AI has finished editing. Download your cinematic highlight reel below.</p>
+  <button class="primary-btn" onclick="downloadVideo()">⬇️ Download Edited Video</button>
+</div>
+</section>
+
+<!-- AI CLIPPER APP CONTAINER -->
+<div id="clipperAppContainer" class="hidden" style="width: 100%; min-height: 100vh; padding-top: 20px;">
+  <div id="root"></div>
+</div>
+
+<footer>
+© 2026 Edynix | AI Game Editing Platform by Supratik Shukla &amp; Samarth Khandelwal
+</footer>
+
+<script>
+let selectedGame = "";
+let minecraftUsername = "";
+
+function showHome(){
+  hideAll();
+  document.getElementById("home").classList.remove("hidden");
+}
+
+function showContact(){
+  hideAll();
+  document.getElementById("contact").classList.remove("hidden");
+}
+
+function showGameSelection(){
+  hideAll();
+  document.getElementById("gamesPage").classList.remove("hidden");
+}
+
+function selectGame(game){
+  selectedGame = game;
+  if(game==="Minecraft"){
+    hideAll();
+    document.getElementById("minecraftUsernamePage").classList.remove("hidden");
+  }
+  else if(game==="Valorant" || game==="Free Fire"){
+    window.selectedGame = game;
+    hideAll();
+    document.getElementById("clipperAppContainer").classList.remove("hidden");
+  }
+  else{
+    hideAll();
+    document.getElementById("uploadPage").classList.remove("hidden");
+  }
+}
+
+function confirmUsername(){
+  minecraftUsername = document.getElementById("mcUsername").value;
+  if(minecraftUsername===""){alert("Username is required for Minecraft.");return;}
+  hideAll();
+  document.getElementById("uploadPage").classList.remove("hidden");
+}
+
+function fileSelected(input){
+  if(input.files&&input.files[0]){
+    let file=input.files[0];
+    const maxSize=5*1024*1024*1024; // 5GB in bytes
+    if(file.size>maxSize){
+      alert("❌ File too large! Maximum allowed size is 5GB.\n\nYour file: "+formatSize(file.size)+"\nMax allowed: 5GB\n\nPlease compress or trim your video and try again.");
+      input.value="";
+      let el=document.getElementById("selectedFileName");
+      el.style.display="none";
+      return;
+    }
+    let el=document.getElementById("selectedFileName");
+    el.style.display="block";
+    el.textContent="📁 "+file.name+" ("+formatSize(file.size)+")";
+  }
+}
+
+function formatSize(bytes){
+  if(bytes>=1024*1024*1024) return (bytes/(1024*1024*1024)).toFixed(2)+" GB";
+  if(bytes>=1024*1024) return (bytes/(1024*1024)).toFixed(1)+" MB";
+  return (bytes/1024).toFixed(0)+" KB";
+}
+
+function startEditing(){
+  let file = document.getElementById("videoUpload").files[0];
+  if(!file){
+    alert("Please upload a video first.");
+    return;
+  }
+
+  const maxSize = 5*1024*1024*1024;
+  if(file.size > maxSize){
+    alert("❌ File exceeds the 5GB limit.");
+    return;
+  }
+
+  let formData = new FormData();
+  formData.append("video", file);
+  formData.append("game", selectedGame);
+  formData.append("username", minecraftUsername);
+
+  document.getElementById("processingText").classList.remove("hidden");
+  document.getElementById("progressWrap").style.display="block";
+
+  let bar = document.getElementById("progressBar");
+  bar.style.width = "20%";
+
+  fetch("/upload", {
+    method: "POST",
+    body: formData
+  })
+  .then(response => {
+    if(!response.ok){
+      throw new Error("Server error");
+    }
+    return response.blob();
+  })
+  .then(blob => {
+    bar.style.width = "100%";
+
+    let url = window.URL.createObjectURL(blob);
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "edynix_highlight.mp4";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    document.getElementById("processingText").classList.add("hidden");
+    document.getElementById("downloadSection").classList.remove("hidden");
+  })
+  .catch(error => {
+    alert("❌ Error processing video. Check backend.");
+    console.error(error);
+  });
+}
+
+function hideAll(){
+  ["home","contact","gamesPage","minecraftUsernamePage","uploadPage","clipperAppContainer", "moreTools"].forEach(id=>{
+    document.getElementById(id).classList.add("hidden");
+  });
+  document.getElementById("downloadSection").classList.add("hidden");
+  document.getElementById("processingText").classList.add("hidden");
+  document.getElementById("progressWrap").style.display="none";
+  document.getElementById("progressBar").style.width="0%";
+  let sf=document.getElementById("selectedFileName");
+  if(sf)sf.style.display="none";
+}
+
+function showMoreTools(){
+  hideAll();
+  document.getElementById("moreTools").classList.remove("hidden");
+}
+
+// Intersection Observer for scroll animations
+document.addEventListener("DOMContentLoaded", () => {
+  const observerOptions = {
+    root: null,
+    rootMargin: '0px',
+    threshold: 0.15
+  };
+
+  const observer = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll('.animate-on-scroll').forEach(el => {
+    observer.observe(el);
+  });
+});
+</script>
+
+<!-- Load Particles.js -->
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+  particlesJS("particles-js", {
+    "particles": {
+      "number": {
+        "value": 80,
+        "density": {
+          "enable": true,
+          "value_area": 800
+        }
+      },
+      "color": {
+        "value": "#ffffff"
+      },
+      "shape": {
+        "type": "circle",
+        "stroke": {
+          "width": 0,
+          "color": "#000000"
+        }
+      },
+      "opacity": {
+        "value": 0.5,
+        "random": false,
+        "anim": {
+          "enable": false,
+          "speed": 1,
+          "opacity_min": 0.1,
+          "sync": false
+        }
+      },
+      "size": {
+        "value": 3,
+        "random": true,
+        "anim": {
+          "enable": false,
+          "speed": 40,
+          "size_min": 0.1,
+          "sync": false
+        }
+      },
+      "line_linked": {
+        "enable": true,
+        "distance": 150,
+        "color": "#ffffff",
+        "opacity": 0.4,
+        "width": 1
+      },
+      "move": {
+        "enable": true,
+        "speed": 6,
+        "direction": "none",
+        "random": false,
+        "straight": false,
+        "out_mode": "out",
+        "bounce": false,
+        "attract": {
+          "enable": false,
+          "rotateX": 600,
+          "rotateY": 1200
+        }
+      }
+    },
+    "interactivity": {
+      "detect_on": "window",
+      "events": {
+        "onhover": {
+          "enable": true,
+          "mode": "grab"
+        },
+        "onclick": {
+          "enable": true,
+          "mode": "push"
+        },
+        "resize": true
+      },
+      "modes": {
+        "grab": {
+          "distance": 140,
+          "line_linked": {
+            "opacity": 1
+          }
+        },
+        "bubble": {
+          "distance": 400,
+          "size": 40,
+          "duration": 2,
+          "opacity": 8,
+          "speed": 3
+        },
+        "repulse": {
+          "distance": 200,
+          "duration": 0.4
+        },
+        "push": {
+          "particles_nb": 4
+        },
+        "remove": {
+          "particles_nb": 2
+        }
+      }
+    },
+    "retina_detect": true
+  });
+</script>
+
+<!-- Load the React App -->
+<script type="module" src="/src/main.tsx"></script>
+
+</body>
+</html>
+
